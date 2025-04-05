@@ -1,0 +1,36 @@
+SET MailBoxName TO $'''info@Contoso.com'''
+SET MailFolderName TO $'''Automate\\Automation1'''
+SET ExcelPath TO $'''C:\\DataFromOutlook.xlsx'''
+Outlook.Launch Instance=> OutlookInstance
+Outlook.RetrieveEmailMessages.RetrieveEmails Instance: OutlookInstance Account: MailBoxName MailFolder: MailFolderName EmailsToRetrieve: Outlook.RetrieveMessagesMode.All MarkAsRead: True ReadBodyAsHtml: False Messages=> MailsRetrieved
+IF IsEmpty(MailsRetrieved) THEN
+    Display.ShowMessageDialog.ShowMessage Title: $'''Keine Mails''' Message: $'''Keine Mails im Ordner %MailFolderName% des Postfaches %MailBoxName%.''' Icon: Display.Icon.None Buttons: Display.Buttons.OK DefaultButton: Display.DefaultButton.Button1 IsTopMost: True ButtonPressed=> ButtonPressed
+ELSE
+    IF (File.IfFile.DoesNotExist File: ExcelPath) THEN
+        Display.ShowMessageDialog.ShowMessage Title: $'''Datei nicht gefunden''' Message: $'''Datei %ExcelPath% bitte anlegen''' Icon: Display.Icon.None Buttons: Display.Buttons.OK DefaultButton: Display.DefaultButton.Button1 IsTopMost: True ButtonPressed=> ButtonPressed
+    ELSE
+        Excel.LaunchExcel.LaunchAndOpenUnderExistingProcess Path: ExcelPath Visible: True ReadOnly: False Instance=> ExcelFileEntity
+        Excel.GetFirstFreeColumnRow Instance: ExcelFileEntity FirstFreeColumn=> ExcelFirstFreeColumn FirstFreeRow=> ExcelFirstFreeRow
+        IF ExcelFirstFreeRow > 1 THEN
+            Display.ShowMessageDialog.ShowMessage Title: $'''Excel nicht leer''' Message: $'''Die Datei %ExcelPath% enthält bereits Daten.''' Icon: Display.Icon.None Buttons: Display.Buttons.OK DefaultButton: Display.DefaultButton.Button1 IsTopMost: False ButtonPressed=> ButtonPressed2
+        END
+        LOOP FOREACH MailEntity IN MailsRetrieved
+            Text.SplitText.Split Text: MailEntity.Body StandardDelimiter: Text.StandardDelimiter.NewLine DelimiterTimes: 1 Result=> MailAllRows
+            LOOP FOREACH MailCurrentRow IN MailAllRows
+                IF StartsWith(MailCurrentRow, $'''Nachname:''', False) THEN
+                    Text.CropText.CropTextAfterFlag Text: MailCurrentRow FromFlag: $'''Nachname:''' IgnoreCase: False CroppedText=> LineNachname IsFlagFound=> IsFlagFound
+                    Clipboard.SetText Text: LineNachname
+                END
+                IF StartsWith(MailCurrentRow, $'''Vorname:''', False) THEN
+                    Text.CropText.CropTextAfterFlag Text: MailCurrentRow FromFlag: $'''Vorname:''' IgnoreCase: False CroppedText=> LineVorname IsFlagFound=> IsFlagFound
+                    Clipboard.SetText Text: LineNachname
+                END
+            END
+            Excel.GetFirstFreeColumnRow Instance: ExcelFileEntity FirstFreeColumn=> ExcelFirstFreeColumn FirstFreeRow=> ExcelFirstFreeRow
+            Excel.WriteToExcel.WriteCell Instance: ExcelFileEntity Value: LineNachname Column: $'''A''' Row: ExcelFirstFreeRow
+            Excel.WriteToExcel.WriteCell Instance: ExcelFileEntity Value: LineVorname Column: $'''B''' Row: ExcelFirstFreeRow
+            Excel.SaveExcel.Save Instance: ExcelFileEntity
+        END
+        Excel.CloseExcel.Close Instance: ExcelFileEntity
+    END
+END
