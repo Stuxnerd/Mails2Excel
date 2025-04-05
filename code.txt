@@ -19,6 +19,9 @@ ELSE
             Excel.WriteToExcel.WriteCell Instance: ExcelFileEntity Value: $'''Straße, HausnummerStraße, Hausnummer''' Column: $'''C''' Row: 1
             Excel.WriteToExcel.WriteCell Instance: ExcelFileEntity Value: $'''Postleitzahl''' Column: $'''D''' Row: 1
             Excel.WriteToExcel.WriteCell Instance: ExcelFileEntity Value: $'''Wohnort''' Column: $'''E''' Row: 1
+            Excel.WriteToExcel.WriteCell Instance: ExcelFileEntity Value: $'''Land''' Column: $'''F''' Row: 1
+            Excel.WriteToExcel.WriteCell Instance: ExcelFileEntity Value: $'''Kfz-Kennzeichen''' Column: $'''G''' Row: 1
+            Excel.WriteToExcel.WriteCell Instance: ExcelFileEntity Value: $'''Teilnahme von - bis''' Column: $'''H''' Row: 1
         END
         LOOP FOREACH MailEntity IN MailsRetrieved
             Text.SplitText.Split Text: MailEntity.Body StandardDelimiter: Text.StandardDelimiter.NewLine DelimiterTimes: 1 Result=> MailAllRows
@@ -43,6 +46,18 @@ ELSE
                     Text.CropText.CropTextAfterFlag Text: MailCurrentRow FromFlag: $'''Wohnort:''' IgnoreCase: False CroppedText=> LineWohnort IsFlagFound=> IsFlagFound
                     Clipboard.SetText Text: LineWohnort
                 END
+                IF StartsWith(MailCurrentRow, $'''Land:''', False) THEN
+                    Text.CropText.CropTextAfterFlag Text: MailCurrentRow FromFlag: $'''Land:''' IgnoreCase: False CroppedText=> LineLand IsFlagFound=> IsFlagFound
+                    Clipboard.SetText Text: LineLand
+                END
+                IF StartsWith(MailCurrentRow, $'''Kfz-Kennzeichen:''', False) THEN
+                    Text.CropText.CropTextAfterFlag Text: MailCurrentRow FromFlag: $'''Kfz-Kennzeichen:''' IgnoreCase: False CroppedText=> LineKennzeichen IsFlagFound=> IsFlagFound
+                    Clipboard.SetText Text: LineKennzeichen
+                END
+                IF StartsWith(MailCurrentRow, $'''Teilnahme von - bis:''', False) THEN
+                    Text.CropText.CropTextAfterFlag Text: MailCurrentRow FromFlag: $'''Teilnahme von - bis:''' IgnoreCase: False CroppedText=> LineTeilnahme IsFlagFound=> IsFlagFound
+                    Clipboard.SetText Text: LineTeilnahme
+                END
             END
             Excel.GetFirstFreeColumnRow Instance: ExcelFileEntity FirstFreeColumn=> ExcelFirstFreeColumn FirstFreeRow=> ExcelFirstFreeRow
             Excel.WriteToExcel.WriteCell Instance: ExcelFileEntity Value: LineNachname Column: $'''A''' Row: ExcelFirstFreeRow
@@ -50,6 +65,9 @@ ELSE
             Excel.WriteToExcel.WriteCell Instance: ExcelFileEntity Value: LineStrasse Column: $'''C''' Row: ExcelFirstFreeRow
             Excel.WriteToExcel.WriteCell Instance: ExcelFileEntity Value: LinePostleitzahl Column: $'''D''' Row: ExcelFirstFreeRow
             Excel.WriteToExcel.WriteCell Instance: ExcelFileEntity Value: LineWohnort Column: $'''E''' Row: ExcelFirstFreeRow
+            Excel.WriteToExcel.WriteCell Instance: ExcelFileEntity Value: LineLand Column: $'''F''' Row: ExcelFirstFreeRow
+            Excel.WriteToExcel.WriteCell Instance: ExcelFileEntity Value: LineKennzeichen Column: $'''G''' Row: ExcelFirstFreeRow
+            Excel.WriteToExcel.WriteCell Instance: ExcelFileEntity Value: LineTeilnahme Column: $'''H''' Row: ExcelFirstFreeRow
             Excel.SaveExcel.Save Instance: ExcelFileEntity
         END
         Excel.CloseExcel.Close Instance: ExcelFileEntity
