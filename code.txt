@@ -11,8 +11,14 @@ ELSE
     ELSE
         Excel.LaunchExcel.LaunchAndOpenUnderExistingProcess Path: ExcelPath Visible: True ReadOnly: False Instance=> ExcelFileEntity
         Excel.GetFirstFreeColumnRow Instance: ExcelFileEntity FirstFreeColumn=> ExcelFirstFreeColumn FirstFreeRow=> ExcelFirstFreeRow
-        IF ExcelFirstFreeRow > 1 THEN
+        IF ExcelFirstFreeRow > 2 THEN
             Display.ShowMessageDialog.ShowMessage Title: $'''Excel nicht leer''' Message: $'''Die Datei %ExcelPath% enthält bereits Daten.''' Icon: Display.Icon.None Buttons: Display.Buttons.OK DefaultButton: Display.DefaultButton.Button1 IsTopMost: False ButtonPressed=> ButtonPressed2
+        ELSE
+            Excel.WriteToExcel.WriteCell Instance: ExcelFileEntity Value: $'''Nachname''' Column: $'''A''' Row: 1
+            Excel.WriteToExcel.WriteCell Instance: ExcelFileEntity Value: $'''Vorname''' Column: $'''B''' Row: 1
+            Excel.WriteToExcel.WriteCell Instance: ExcelFileEntity Value: $'''Straße, HausnummerStraße, Hausnummer''' Column: $'''C''' Row: 1
+            Excel.WriteToExcel.WriteCell Instance: ExcelFileEntity Value: $'''Postleitzahl''' Column: $'''D''' Row: 1
+            Excel.WriteToExcel.WriteCell Instance: ExcelFileEntity Value: $'''Wohnort''' Column: $'''E''' Row: 1
         END
         LOOP FOREACH MailEntity IN MailsRetrieved
             Text.SplitText.Split Text: MailEntity.Body StandardDelimiter: Text.StandardDelimiter.NewLine DelimiterTimes: 1 Result=> MailAllRows
@@ -25,10 +31,25 @@ ELSE
                     Text.CropText.CropTextAfterFlag Text: MailCurrentRow FromFlag: $'''Vorname:''' IgnoreCase: False CroppedText=> LineVorname IsFlagFound=> IsFlagFound
                     Clipboard.SetText Text: LineNachname
                 END
+                IF StartsWith(MailCurrentRow, $'''Straße, Hausnummer:''', False) THEN
+                    Text.CropText.CropTextAfterFlag Text: MailCurrentRow FromFlag: $'''Straße, Hausnummer:''' IgnoreCase: False CroppedText=> LineStrasse IsFlagFound=> IsFlagFound
+                    Clipboard.SetText Text: LineStrasse
+                END
+                IF StartsWith(MailCurrentRow, $'''Postleitzahl:''', False) THEN
+                    Text.CropText.CropTextAfterFlag Text: MailCurrentRow FromFlag: $'''Postleitzahl:''' IgnoreCase: False CroppedText=> LinePostleitzahl IsFlagFound=> IsFlagFound
+                    Clipboard.SetText Text: LinePostleitzahl
+                END
+                IF StartsWith(MailCurrentRow, $'''Wohnort:''', False) THEN
+                    Text.CropText.CropTextAfterFlag Text: MailCurrentRow FromFlag: $'''Wohnort:''' IgnoreCase: False CroppedText=> LineWohnort IsFlagFound=> IsFlagFound
+                    Clipboard.SetText Text: LineWohnort
+                END
             END
             Excel.GetFirstFreeColumnRow Instance: ExcelFileEntity FirstFreeColumn=> ExcelFirstFreeColumn FirstFreeRow=> ExcelFirstFreeRow
             Excel.WriteToExcel.WriteCell Instance: ExcelFileEntity Value: LineNachname Column: $'''A''' Row: ExcelFirstFreeRow
             Excel.WriteToExcel.WriteCell Instance: ExcelFileEntity Value: LineVorname Column: $'''B''' Row: ExcelFirstFreeRow
+            Excel.WriteToExcel.WriteCell Instance: ExcelFileEntity Value: LineStrasse Column: $'''C''' Row: ExcelFirstFreeRow
+            Excel.WriteToExcel.WriteCell Instance: ExcelFileEntity Value: LinePostleitzahl Column: $'''D''' Row: ExcelFirstFreeRow
+            Excel.WriteToExcel.WriteCell Instance: ExcelFileEntity Value: LineWohnort Column: $'''E''' Row: ExcelFirstFreeRow
             Excel.SaveExcel.Save Instance: ExcelFileEntity
         END
         Excel.CloseExcel.Close Instance: ExcelFileEntity
