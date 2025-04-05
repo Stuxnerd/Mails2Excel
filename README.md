@@ -6,9 +6,9 @@ Create a new Flow in Microsoft Power Automate. Copy the code from code.txt to ma
 
 ## Adapt
 Set the values for the variables
-- MailBoxName: Is in outlook the email address (e.g. mail@stuxnerd.org)
-- MailFolderName: Is the path in Outlook. It can contain subpaths (e.g. Inbox\MailsForAutomation)
-- ExcelPath: Is the path to the Excel file (e.g. C:\DataFromOutlook.xlsx)
+- ***MailBoxName***: Is in outlook the email address (e.g. mail@stuxnerd.org)
+- ***MailFolderName***: Is the path in Outlook. It can contain subpaths (e.g. Inbox\MailsForAutomation)
+- ***ExcelPath***: Is the path to the Excel file (e.g. C:\DataFromOutlook.xlsx)
   - The file should be empty, but can contain already data (not suggested)
   - Include the ending for the filetype
   - Just tested with absolute paths
